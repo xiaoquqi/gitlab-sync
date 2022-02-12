@@ -1,0 +1,20 @@
+version: '3.3'
+services:
+  gitlab-sync:
+    build: .
+    image: 'registry.cn-shanghai.aliyuncs.com/ray-dockers/gitlab-sync:latest'
+    restart: always
+    environment:
+      TZ: "${TZ}"
+      LOCAL_GTILAB_URL: "${LOCAL_GTILAB_URL}"
+      LOCAL_GITLAB_TOKEN: "${LOCAL_GITLAB_TOKEN}"
+      LOCAL_GITLAB_GROUP: "${LOCAL_GITLAB_GROUP}"
+      REMOTE_GTILAB_URL: "${REMOTE_GTILAB_URL}"
+      REMOTE_GTILAB_TOKEN: "${REMOTE_GTILAB_TOKEN}"
+      REMOTE_GTILAB_GROUP: "${REMOTE_GTILAB_GROUP}"
+      REMOTE_GTILAB_PUSH_URL: "${REMOTE_GTILAB_PUSH_URL}"
+    volumes:
+      - './crontab/cron:/var/spool/cron/root'
+      - './scripts/period_task.sh:/period_task.sh'
+      - '~/.ssh:/root/.ssh'
+      - '/var/log/gitlab-sync:/var/log/gitlab-sync'

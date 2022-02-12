@@ -1,0 +1,19 @@
+name: Docker Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Build the Docker image
+      uses: actions/checkout@v2
+      
+    - name: Run docker build
+      run: docker build . --file Dockerfile --tag registry.cn-shanghai.aliyuncs.com/ray-dockers/gitlab-sync:latest
+      
+    - name: Login Aliyun dockerhub
+      run: docker login -u ${{ secrets.ALIYUN_DOCKERHUB_USERNAME }} -p ${{ secrets.ALIYUN_DOCKERHUB_PASSWORD }} registry.cn-shanghai.aliyuncs.com
+      
+    - name: Push to aliyun dockerhub
+      run: docker push registry.cn-shanghai.aliyuncs.com/ray-dockers/gitlab-sync:latest
