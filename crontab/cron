@@ -1,2 +1,2 @@
 # Use flock to avoid duplicate task running
-0 23 * * * /usr/bin/flock -n /tmp/crontabl.lockfile bash /period_task.sh >> /var/log/gitlab-sync.log
+0 23 * * * /usr/bin/flock -n /tmp/crontabl.lockfile bash /period_task.sh >> /var/log/gitlab-sync/gitlab-sync.log 2>&1

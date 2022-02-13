@@ -40,7 +40,8 @@ You just need to change the crontab scheduler, and ignore the command part. We u
 
 ### Volume Mounts
 
-By default, we need to use your ssh key to access your gitlab projects. By default, I mount your $HOME/.ssh to /root/.ssh in docker.
+* SSH Keys: By default, we need to use your ssh key to access your gitlab projects. By default, I mount your $HOME/.ssh to /root/.ssh in docker.
+* Logs setting: By default, we write the stdout and stderr logs to /var/log/gitlab-sync/gitlab-sync.log and already mount your OS /var/log/gitlab-sync to your host, you can check log from there 
 
 ### Run as Daemon
 
