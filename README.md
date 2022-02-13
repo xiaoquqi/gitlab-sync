@@ -12,10 +12,11 @@ If you want to run a schedule job to sync between gitlabs, you can use this dock
 
 ### Modify Environment
 
-Copy env.sample to local default env.
+Prepare to copy samples to runtime env and configs
 
 ```
 cp env.sample .env
+cp crontab/cron.exmaple crontab/cron
 ```
 
 Modify your .env and use your gitlab local and remote configurations.
