@@ -2,9 +2,61 @@
 
 This script is used to sync between gitlab in group level, including all subgroups and projects.
 
-# How to use?
+Use the default docker, you can run a schedule job to sync between gitlab.
 
-## Command Help
+# How to use script?
+
+## (Recommendation)Run in Docker
+
+If you want to run a schedule job to sync between gitlabs, you can use this docker. By default, the docker use Linux crontab to run period task. Here's the detailed:
+
+### Modify Environment
+
+Copy env.sample to local default env.
+
+```
+cp env.sample .env
+```
+
+Modify your .env and use your gitlab local and remote configurations.
+
+* LOCAL_GTILAB_URL: The gitlab you want set as source
+* LOCAL_GITLAB_TOKEN: Token to access your gitlab, we need find out all your groups and projects, all the actions are read
+* LOCAL_GITLAB_GROUP: Local gitlab group you sync to remote
+* REMOTE_GTILAB_URL: Remote gitlab as target
+* REMOTE_GTILAB_TOKEN: Token to access your remote gitlab, we need to read and create groups and projects if not exists
+* REMOTE_GTILAB_GROUP: Remote root group you set as target
+* REMOTE_GTILAB_PUSH_URL: Remote push base url, ex: ssh://git@remote.gitlab.com:ssh_port
+
+### Schedule Settings
+
+Modify scheduler settings in the crontab/cron file, this file will mount inside docker after running, here's an exmaple:
+
+You just need to change the crontab scheduler, and ignore the command part. We use flock to lock the task to avoid duplicate running.
+
+```
+0 23 * * * /usr/bin/flock -n /tmp/crontabl.lockfile bash /period_task.sh >> /var/log/gitlab-sync.log
+```
+
+### Volume Mounts
+
+By default, we need to use your ssh key to access your gitlab projects. By default, I mount your $HOME/.ssh to /root/.ssh in docker.
+
+### Run as Daemon
+
+```
+docker-compuse up -d
+```
+
+## CLI Help
+
+You can also use the script in your own environment, Python 3.6+ and virtualenv are recommended.
+
+```
+virtualenv-3 venv3
+source venve3/bin/activate
+pip install -r src/requirements.txt
+```
 
 ```
 usage: gitlab-sync.py [-h] --local LOCAL --local-token LOCAL_TOKEN
@@ -29,22 +81,4 @@ optional arguments:
   --push-url PUSH_URL   Remote push url for backup target
   -d, --debug           Enable debug message.
   -v, --verbose         Show message in standard output.
-```
-
-## Use Docker to run
-
-```
-docker run \
-  --rm -it \
-  -v $HOME:/root \
-  --name gitlab-sync \
-  gitlab-sync:latest \
-  gitlab-sync \
-    --local http://192.168.10.254:20080 \
-    --local-token hyZ3ay3kt3zWvLMx2LGP \
-    --local-group hypermotion \
-    --remote http://gitlab.oneprocloud.com:31080 \
-    --remote-token eWyUea2qLpA6byv5SpB1 \
-    --remote-group hypermotion \
-    --push-url ssh://git@gitlab.oneprocloud.com:31022
 ```
