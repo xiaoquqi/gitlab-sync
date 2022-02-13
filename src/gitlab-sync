@@ -80,7 +80,7 @@ def sync(args):
             remote_namespace, project_name)
 
         # Push all branches and tags to remote
-        logging.info("Run git push to %s..." % git_url)
+        logging.info("Run git push to %s..." % remote_url)
         remote_repo = GitRepo(remote_url, src_path)
         remote_repo.push_all_branches()
         remote_repo.push_all_tags()
