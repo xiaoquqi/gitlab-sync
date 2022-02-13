@@ -82,3 +82,17 @@ optional arguments:
   -d, --debug           Enable debug message.
   -v, --verbose         Show message in standard output.
 ```
+
+# Gitlab Tips
+
+## Create a personal access token
+
+You can create as many personal access tokens as you like.
+
+1. In the top-right corner, select your avatar.
+2. Select Edit profile.
+3. On the left sidebar, select Access Tokens.
+4. Enter a name and optional expiry date for the token.
+5. Select the desired scopes.
+6. Select Create personal access token.
+7. Save the personal access token somewhere safe. After you leave the page, you no longer have access to the token.
