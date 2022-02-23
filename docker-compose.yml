@@ -13,8 +13,11 @@ services:
       REMOTE_GTILAB_TOKEN: "${REMOTE_GTILAB_TOKEN}"
       REMOTE_GTILAB_GROUP: "${REMOTE_GTILAB_GROUP}"
       REMOTE_GTILAB_PUSH_URL: "${REMOTE_GTILAB_PUSH_URL}"
+      IGNORE_BRANCHES: "${IGNORE_BRANCHES}"
+      ALLOW_BRANCHES: "${ALLOW_BRANCHES}"
+      FORCE_PUSH: "${FORCE_PUSH}"
     volumes:
-      - './crontab/cron:/var/spool/cron/root'
+      - './conf/crontab/cron:/var/spool/cron/root'
       - './scripts/period_task.sh:/period_task.sh'
       - '~/.ssh:/root/.ssh'
       - '/var/log/gitlab-sync:/var/log/gitlab-sync'

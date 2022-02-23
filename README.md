@@ -16,7 +16,7 @@ Prepare to copy samples to runtime env and configs
 
 ```
 cp env.sample .env
-cp crontab/cron.exmaple crontab/cron
+cp conf/crontab/cron.exmaple crontab/cron
 ```
 
 Modify your .env and use your gitlab local and remote configurations.
@@ -28,15 +28,18 @@ Modify your .env and use your gitlab local and remote configurations.
 * REMOTE_GTILAB_TOKEN: Token to access your remote gitlab, we need to read and create groups and projects if not exists
 * REMOTE_GTILAB_GROUP: Remote root group you set as target
 * REMOTE_GTILAB_PUSH_URL: Remote push base url, ex: ssh://git@remote.gitlab.com:ssh_port
+* IGNORE_BRANCHES: Branches not sync
+* ALLOW_BRANCHES: Branches need to sync, ignore branches's priority is higher than ignore branches
+* FORCE_PUSH: If add force when push
 
 ### Schedule Settings
 
-Modify scheduler settings in the crontab/cron file, this file will mount inside docker after running, here's an exmaple:
+Modify scheduler settings in the conf/crontab/cron file, this file will mount inside docker after running, here's an exmaple:
 
 You just need to change the crontab scheduler, and ignore the command part. We use flock to lock the task to avoid duplicate running.
 
 ```
-0 23 * * * /usr/bin/flock -n /tmp/crontabl.lockfile bash /period_task.sh >> /var/log/gitlab-sync.log
+0 23 * * * /usr/bin/flock -n /tmp/crontab.lockfile bash /period_task.sh >> /var/log/gitlab-sync.log
 ```
 
 ### Volume Mounts
@@ -81,6 +84,13 @@ optional arguments:
   --remote-group REMOTE_GROUP
                         Target group of remote github for backup.
   --push-url PUSH_URL   Remote push url for backup target
+  --force-push          Force push to remote by default
+  --ignore-branches IGNORE_BRANCHES
+                        Not sync for ignore branches, ex: cherry-pick,dev,temp
+  --allow-branches ALLOW_BRANCHES
+                        Only sync for allow branches, ex: master,main,qa. if
+                        not given, sync all branches.If ignore branches is
+                        given, thepriority is higher than this argument
   -d, --debug           Enable debug message.
   -v, --verbose         Show message in standard output.
 ```

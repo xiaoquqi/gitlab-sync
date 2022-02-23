@@ -16,12 +16,25 @@ from common.gitlab_wrapper import GitlabWrapper
 
 IGNORE_BRANCHES = ["cherry-pick"]
 
+
 def sync(args):
     local_group = args.local_group
     local_gl = GitlabWrapper(args.local, args.local_token)
 
     remote_group = args.remote_group
     remote_gl = GitlabWrapper(args.remote, args.remote_token)
+
+    # force push
+    force_push = args.force_push
+
+    # Get branches arguments
+    ignore_branches = []
+    if args.ignore_branches:
+        ignore_branches = args.ignore_branches.split(",")
+
+    allow_branches = []
+    if args.allow_branches:
+        allow_branches = args.allow_branches.split(",")
 
     if not local_gl.is_group_exists(local_group):
         raise Exception(
@@ -68,7 +81,9 @@ def sync(args):
         local_repo = GitRepo(git_url, src_path)
         local_repo.clone()
         for branch in local_repo.branches:
-            if _is_ignore_branch(branch):
+            if not _is_sync_branch(ignore_branches,
+                                   allow_branches,
+                                   branch):
                 logging.info("Found ignore branch %s, skip to pull" % branch)
                 continue
             if not branch == local_repo.current_branch:
@@ -82,15 +97,31 @@ def sync(args):
         # Push all branches and tags to remote
         logging.info("Run git push to %s..." % remote_url)
         remote_repo = GitRepo(remote_url, src_path)
-        remote_repo.push_all_branches()
-        remote_repo.push_all_tags()
+        remote_repo.push_all_branches(force=force_push)
+        remote_repo.push_all_tags(force=force_push)
 
-def _is_ignore_branch(branch_name):
-    """Return True if branch need to be ignore"""
-    for ib in IGNORE_BRANCHES:
+
+def _is_sync_branch(ignore_branches, allow_branches, branch_name):
+    """Return True if branch need to be sync
+
+    Ignore branch priority is higher than allow branch, loop all ignore
+    branch first than find allow branches
+    """
+    for ib in ignore_branches:
         if ib in branch_name:
             return True
-    return False
+
+    # if allow branches is empty, by default, we will sync all branches
+    if allow_branches:
+        for ab in allow_branches:
+            if ab in branch_name:
+                return True
+
+        # Return false if we can't find name in allow branches
+        return False
+    else:
+        return True
+
 
 def _get_remote_namespace(local_namespace, remote_group):
     """Replace the first group name with remote group"""
@@ -98,11 +129,13 @@ def _get_remote_namespace(local_namespace, remote_group):
     namespaces[0] = remote_group
     return "/".join(namespaces)
 
+
 def main():
     args = parse_sys_args(sys.argv)
     init_logging(verbose=args.verbose, debug=args.debug)
 
     sync(args)
+
 
 if __name__ == "__main__":
     main()

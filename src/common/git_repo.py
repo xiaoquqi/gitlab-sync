@@ -37,10 +37,11 @@ class GitRepo(object):
     def pull_branch(self, remote_branch, local_branch=None):
         if not local_branch:
             local_branch = remote_branch
-        self.repo.git.fetch(self.git_url, "%s:%s" % (remote_branch, local_branch))
+        self.repo.git.fetch(self.git_url, "%s:%s" % (
+            remote_branch, local_branch))
 
-    def push_all_branches(self):
-        self.repo.git.push(self.git_url, "--all")
+    def push_all_branches(self, force=False):
+        self.repo.git.push(self.git_url, "--all", force=force)
 
-    def push_all_tags(self):
-        self.repo.git.push(self.git_url, "--tags")
+    def push_all_tags(self, force=False):
+        self.repo.git.push(self.git_url, "--tags", force=force)
