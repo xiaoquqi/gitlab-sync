@@ -1,5 +1,6 @@
 .env
-crontab/cron
+conf/crontab/cron
+conf/ssh/id_rsa*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

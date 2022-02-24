@@ -10,6 +10,34 @@ Use the default docker, you can run a schedule job to sync between gitlab.
 
 If you want to run a schedule job to sync between gitlabs, you can use this docker. By default, the docker use Linux crontab to run period task. Here's the detailed:
 
+### Get code
+
+```
+git clone https://github.com/xiaoquqi/gitlab-sync
+```
+
+### SSH Keys
+
+By default, ssh key mount dir is under gitlab-sync/conf/ssh, you can copy your existing keys here or generate a new one.
+
+```
+cd gitlab-sync
+ssh-keygen -t rsa -b 2048 -f conf/ssh/id_rsa -q -N ""
+```
+
+Make sure your own key or generated key already uploaded to local and remote gitlab. By default, we will use ssh url to get local code for private repositories.
+
+```
+cat conf/ssh/id_rsa.pub
+```
+
+* Login your gitlab
+* Right Corner and click icon
+* Click [Preferences]
+* Select [SSH Keys] on the left menu
+* Copy and Paste your public key
+* Click [Add Keys]
+
 ### Modify Environment
 
 Prepare to copy samples to runtime env and configs

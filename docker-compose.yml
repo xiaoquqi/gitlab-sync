@@ -17,7 +17,7 @@ services:
       ALLOW_BRANCHES: "${ALLOW_BRANCHES}"
       FORCE_PUSH: "${FORCE_PUSH}"
     volumes:
+      - './conf/ssh:/root/.ssh'
       - './conf/crontab/cron:/var/spool/cron/root'
       - './scripts/period_task.sh:/period_task.sh'
-      - '~/.ssh:/root/.ssh'
       - '/var/log/gitlab-sync:/var/log/gitlab-sync'
