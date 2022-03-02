@@ -31,7 +31,7 @@ def parse_sys_args(argv):
         required=True, help="Remote gitlab private token")
     parser.add_argument(
         "--remote-group", action="store", dest="remote_group",
-        required=True, help="Target group of remote github for backup.")
+        required=False, help="Target group of remote github for backup.")
     parser.add_argument(
         "--push-url", action="store", dest="push_url",
         required=True, help="Remote push url for backup target")

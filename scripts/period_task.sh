@@ -9,7 +9,6 @@ echo "/opt/gitlab-sync/gitlab-sync \
     --local-group $LOCAL_GITLAB_GROUP \
     --remote $REMOTE_GTILAB_URL \
     --remote-token $REMOTE_GTILAB_TOKEN \
-    --remote-group $REMOTE_GTILAB_GROUP \
     --push-url $REMOTE_GTILAB_PUSH_URL \
     --ignore-branches $IGNORE_BRANCHES \
     --allow-branches $ALLOW_BRANCHES \
@@ -23,7 +22,6 @@ echo "/opt/gitlab-sync/gitlab-sync \
     --local-group $LOCAL_GITLAB_GROUP \
     --remote $REMOTE_GTILAB_URL \
     --remote-token $REMOTE_GTILAB_TOKEN \
-    --remote-group $REMOTE_GTILAB_GROUP \
     --push-url $REMOTE_GTILAB_PUSH_URL \
     --ignore-branches $IGNORE_BRANCHES \
     --allow-branches $ALLOW_BRANCHES \

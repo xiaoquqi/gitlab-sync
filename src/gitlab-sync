@@ -14,8 +14,6 @@ from common.init_logging import init_logging
 from common.git_repo import GitRepo
 from common.gitlab_wrapper import GitlabWrapper
 
-IGNORE_BRANCHES = ["cherry-pick"]
-
 
 def sync(args):
     local_group = args.local_group
@@ -26,6 +24,7 @@ def sync(args):
 
     # force push
     force_push = args.force_push
+    push_url = args.push_url
 
     # Get branches arguments
     ignore_branches = []
@@ -36,28 +35,49 @@ def sync(args):
     if args.allow_branches:
         allow_branches = args.allow_branches.split(",")
 
-    if not local_gl.is_group_exists(local_group):
-        raise Exception(
-            "Can not find local group name %s, "
-            "avaliabe group names are: %s" % (
-                local_group, local_gl.group_names()))
+    # NOTE(Ray): Support multiple groups sync, you can specify different sync
+    # group target, but need to keep the same numbers in remote group, or just
+    # leave as blank, we will use the same name as the local group name
+    local_groups = local_group.split(",")
 
-    remote_gl = GitlabWrapper(args.remote, args.remote_token)
-    if not remote_gl.is_group_exists(remote_group):
-        raise Exception(
-            "Can not find remote group name %s, "
-            "avaliabe group names are: %s" % (
-                remote_group, remote_gl.group_names()))
+    if not remote_group:
+        remote_groups = local_groups
+    else:
+        remote_groups = remote_group.split(",")
 
-    #with tempfile.TemporaryDirectory() as tmpdirname:
+    if not len(remote_groups) == len(local_groups):
+        raise Exception("Not enough remote groups given, "
+                        "local groups: %s, remote_groups: %s" % (
+                            local_groups, remote_groups))
+
+    for index, lg in enumerate(local_groups):
+        rg = remote_groups[index]
+
+        if not local_gl.is_group_exists(lg):
+            raise Exception(
+                "Can not find local group name %s, "
+                "avaliabe group names are: %s" % (
+                    lg, local_gl.group_names()))
+
+        local_projects = local_gl.group_projects(lg)
+
+        _sync_group_projects(local_projects,
+                             remote_gl,
+                             rg,
+                             push_url,
+                             ignore_branches,
+                             allow_branches,
+                             force_push)
+
+
+def _sync_group_projects(local_projects,
+                         remote_gl,
+                         remote_group,
+                         push_url,
+                         ignore_branches,
+                         allow_branches,
+                         force_push):
     tmpdirname = tempfile.mkdtemp()
-    local_projects = local_gl.group_projects(local_group)
-
-    # If no remote projects we need to create
-    remote_group_projects = remote_gl.group_project_names(
-        remote_group)
-    logging.debug("Remote group %s projects %s" % (
-        remote_group, remote_group_projects))
 
     # Get all local projects in group, pull code from
     # all branches, then push to remote
@@ -68,7 +88,7 @@ def sync(args):
         remote_namespace = _get_remote_namespace(
             local_namespace, remote_group)
         remote_url = os.path.join(
-            args.push_url, remote_namespace, project_name)
+            push_url, remote_namespace, project_name)
         src_path = os.path.join(
             tmpdirname, local_namespace, project_name)
 

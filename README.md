@@ -4,6 +4,8 @@ This script is used to sync between gitlab in group level, including all subgrou
 
 Use the default docker, you can run a schedule job to sync between gitlab.
 
+UPDATE: Support multiple groups sync and no need to pre-create remote groups.
+
 # How to use script?
 
 ## (Recommendation)Run in Docker
@@ -51,10 +53,10 @@ Modify your .env and use your gitlab local and remote configurations.
 
 * LOCAL_GTILAB_URL: The gitlab you want set as source
 * LOCAL_GITLAB_TOKEN: Token to access your gitlab, we need find out all your groups and projects, all the actions are read
-* LOCAL_GITLAB_GROUP: Local gitlab group you sync to remote
+* LOCAL_GITLAB_GROUP: Local gitlab groups you sync to remote, use comma to seperate
 * REMOTE_GTILAB_URL: Remote gitlab as target
 * REMOTE_GTILAB_TOKEN: Token to access your remote gitlab, we need to read and create groups and projects if not exists
-* REMOTE_GTILAB_GROUP: Remote root group you set as target
+* REMOTE_GTILAB_GROUP: Remote root groups you set as target, use comma to seperate, the total nubmers of groups should equal to local groups
 * REMOTE_GTILAB_PUSH_URL: Remote push base url, ex: ssh://git@remote.gitlab.com:ssh_port
 * IGNORE_BRANCHES: Branches not sync
 * ALLOW_BRANCHES: Branches need to sync, ignore branches's priority is higher than ignore branches

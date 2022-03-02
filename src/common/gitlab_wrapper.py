@@ -9,8 +9,6 @@ class GitlabWrapper(object):
         self.gl = gitlab.Gitlab(
             url=api_url, private_token=private_token)
         self._groups = []
-        # Save created group names to avoid api call
-        self._create_group_names = []
 
     @property
     def groups(self):
@@ -20,9 +18,11 @@ class GitlabWrapper(object):
         return self._groups
 
     def group_names(self):
-        return [g.full_path for g in self.groups] + self._create_group_names
+        return [g.full_path for g in self.groups]
 
     def is_group_exists(self, name):
+        logging.debug("Try to find group %s in group "
+                      "names: %s" % (name, self.group_names()))
         return name in self.group_names()
 
     def is_project_exists(self, name):
@@ -31,7 +31,11 @@ class GitlabWrapper(object):
     def get_group_id_by_name(self, name):
         for g in self.groups:
             if g.full_path == name:
+                logging.debug("Found group id by name %s, "
+                              "group detailed: %s" % (name, g))
                 return g.id
+
+        return None
 
     def group_projects(self, name):
         group_id = self.get_group_id_by_name(name)
@@ -77,7 +81,7 @@ class GitlabWrapper(object):
                 parent_group_id = create_group_info.id
                 # NOTE(Ray): After create group we need to save into
                 # self._group for next loop
-                self._create_group_names.append(current_namespace)
+                self._groups.append(create_group_info)
             else:
                 parent_group_id = self.get_group_id_by_name(current_namespace)
                 logging.debug("Group %s is exists, "
@@ -108,6 +112,8 @@ class GitlabWrapper(object):
             project = None
 
         if not project:
+            logging.info("Creating project %s, namespace_id "
+                         "is %s..." % (project_name, project_group_id))
             self.gl.projects.create({
                 "name": project_name,
                 "namespace_id": project_group_id
