@@ -77,48 +77,47 @@ def _sync_group_projects(local_projects,
                          ignore_branches,
                          allow_branches,
                          force_push):
-    tmpdirname = tempfile.mkdtemp()
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        # Get all local projects in group, pull code from
+        # all branches, then push to remote
+        for p in local_projects:
+            project_name = p.name
+            git_url = p.ssh_url_to_repo
+            local_namespace = p.namespace["full_path"]
+            remote_namespace = _get_remote_namespace(
+                local_namespace, remote_group)
+            remote_url = os.path.join(
+                push_url, remote_namespace, project_name)
+            src_path = os.path.join(
+                tmpdirname, local_namespace, project_name)
 
-    # Get all local projects in group, pull code from
-    # all branches, then push to remote
-    for p in local_projects:
-        project_name = p.name
-        git_url = p.ssh_url_to_repo
-        local_namespace = p.namespace["full_path"]
-        remote_namespace = _get_remote_namespace(
-            local_namespace, remote_group)
-        remote_url = os.path.join(
-            push_url, remote_namespace, project_name)
-        src_path = os.path.join(
-            tmpdirname, local_namespace, project_name)
+            if not os.path.exists(src_path):
+                os.makedirs(src_path)
 
-        if not os.path.exists(src_path):
-            os.makedirs(src_path)
+            # Download specific repo with all branches
+            logging.info("Run git clone %s to %s" % (
+                git_url, src_path))
+            local_repo = GitRepo(git_url, src_path)
+            local_repo.clone()
+            for branch in local_repo.branches:
+                if not _is_sync_branch(ignore_branches,
+                                       allow_branches,
+                                       branch):
+                    logging.info("Found ignore branch %s, skip to pull" % branch)
+                    continue
+                if not branch == local_repo.current_branch:
+                    logging.info("Pulling branch %s..." % branch)
+                    local_repo.pull_branch(branch)
 
-        # Download specific repo with all branches
-        logging.info("Run git clone %s to %s" % (
-            git_url, src_path))
-        local_repo = GitRepo(git_url, src_path)
-        local_repo.clone()
-        for branch in local_repo.branches:
-            if not _is_sync_branch(ignore_branches,
-                                   allow_branches,
-                                   branch):
-                logging.info("Found ignore branch %s, skip to pull" % branch)
-                continue
-            if not branch == local_repo.current_branch:
-                logging.info("Pulling branch %s..." % branch)
-                local_repo.pull_branch(branch)
+            # Make sure groups and projects are created in remote gitlab
+            remote_gl.ensure_project_exists(
+                remote_namespace, project_name)
 
-        # Make sure groups and projects are created in remote gitlab
-        remote_gl.ensure_project_exists(
-            remote_namespace, project_name)
-
-        # Push all branches and tags to remote
-        logging.info("Run git push to %s..." % remote_url)
-        remote_repo = GitRepo(remote_url, src_path)
-        remote_repo.push_all_branches(force=force_push)
-        remote_repo.push_all_tags(force=force_push)
+            # Push all branches and tags to remote
+            logging.info("Run git push to %s..." % remote_url)
+            remote_repo = GitRepo(remote_url, src_path)
+            remote_repo.push_all_branches(force=force_push)
+            remote_repo.push_all_tags(force=force_push)
 
 
 def _is_sync_branch(ignore_branches, allow_branches, branch_name):
