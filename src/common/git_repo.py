@@ -1,4 +1,9 @@
+import urllib.parse
+
 import git
+
+# Default ssh options
+SSH_CMD = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 # Ignore remote refs to get real branches
 IGNORE_REFS = ["HEAD"]
@@ -6,7 +11,7 @@ IGNORE_REFS = ["HEAD"]
 class GitRepo(object):
 
     def __init__(self, git_url, src_path):
-        self.git_url = git_url
+        self.git_url = urllib.parse.quote(git_url, safe=':/')
         self.src_path = src_path
         self._repo = None
 
@@ -32,7 +37,8 @@ class GitRepo(object):
         return self.repo.active_branch.name
 
     def clone(self):
-        git.Repo.clone_from(self.git_url, to_path=self.src_path)
+        git.Repo.clone_from(self.git_url, to_path=self.src_path,
+                            env={'GIT_SSH_COMMAND': SSH_CMD})
 
     def pull_branch(self, remote_branch, local_branch=None):
         if not local_branch:

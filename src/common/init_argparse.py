@@ -21,7 +21,8 @@ def parse_sys_args(argv):
         required=True, help="Local gitlab private token.")
     parser.add_argument(
         "--local-group", action="store", dest="local_group",
-        required=True, help="Local github group for reading.")
+        required=False, help="Local github group for syncing, "
+                             "Leave this as blank when you want to sync all groups")
     parser.add_argument(
         "--remote", action="store", dest="remote",
         required=True, help="Remote gitlab http url, "
@@ -31,7 +32,12 @@ def parse_sys_args(argv):
         required=True, help="Remote gitlab private token")
     parser.add_argument(
         "--remote-group", action="store", dest="remote_group",
-        required=False, help="Target group of remote github for backup.")
+        required=False, help="Target group of remote github for backup, "
+                             "Leave this as blank if you want to keep the "
+                             "same name as remote")
+    parser.add_argument(
+        "--remote-parent-group", action="store", dest="remote_parent_group",
+        required=False, help="Parent group to save all local groups")
     parser.add_argument(
         "--push-url", action="store", dest="push_url",
         required=True, help="Remote push url for backup target")
@@ -47,7 +53,7 @@ def parse_sys_args(argv):
         "--allow-branches", action="store", dest="allow_branches",
         required=False, help="Only sync for allow branches, "
                              "ex: master,main,qa. "
-                             "if not given, sync all branches."
+                             "if not given, sync all branches. "
                              "If ignore branches is given, the"
                              "priority is higher than this argument")
     parser.add_argument(

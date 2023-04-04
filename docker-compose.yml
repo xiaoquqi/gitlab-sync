@@ -16,6 +16,7 @@ services:
       IGNORE_BRANCHES: "${IGNORE_BRANCHES}"
       ALLOW_BRANCHES: "${ALLOW_BRANCHES}"
       FORCE_PUSH: "${FORCE_PUSH}"
+      REMOTE_PARENT_GROUP: "${REMOTE_PARENT_GROUP}"
     volumes:
       - './conf/ssh:/root/.ssh'
       - './conf/crontab/cron:/var/spool/cron/root'

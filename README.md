@@ -4,6 +4,7 @@ This script is used to sync between gitlab in group level, including all subgrou
 
 Use the default docker, you can run a schedule job to sync between gitlab.
 
+2023-04-04 UPDATE: By default, sync all local groups to remote and you can save all groups under a remote parent group
 UPDATE: Support multiple groups sync and no need to pre-create remote groups.
 
 # How to use script?
@@ -61,6 +62,7 @@ Modify your .env and use your gitlab local and remote configurations.
 * IGNORE_BRANCHES: Branches not sync
 * ALLOW_BRANCHES: Branches need to sync, ignore branches's priority is higher than ignore branches
 * FORCE_PUSH: If add force when push
+* REMOTE_PARENT_GROUP: Sync all projects under this parent group
 
 ### Schedule Settings
 
@@ -94,10 +96,9 @@ pip install -r src/requirements.txt
 ```
 
 ```
-usage: gitlab-sync.py [-h] --local LOCAL --local-token LOCAL_TOKEN
-                      --local-group LOCAL_GROUP --remote REMOTE --remote-token
-                      REMOTE_TOKEN --remote-group REMOTE_GROUP --push-url
-                      PUSH_URL [-d] [-v]
+usage: gitlab-sync [-h] --local LOCAL --local-token LOCAL_TOKEN [--local-group LOCAL_GROUP] --remote REMOTE --remote-token REMOTE_TOKEN
+                   [--remote-group REMOTE_GROUP] [--remote-parent-group REMOTE_PARENT_GROUP] --push-url PUSH_URL [--force-push]
+                   [--ignore-branches IGNORE_BRANCHES] [--allow-branches ALLOW_BRANCHES] [-d] [-v]
 
 Gitlab backup tool in group level
 
@@ -107,20 +108,21 @@ optional arguments:
   --local-token LOCAL_TOKEN
                         Local gitlab private token.
   --local-group LOCAL_GROUP
-                        Local github group for reading.
+                        Local github group for syncing, Leave this as blank when you want to sync all groups
   --remote REMOTE       Remote gitlab http url, ex: https://remote.gitlab.com
   --remote-token REMOTE_TOKEN
                         Remote gitlab private token
   --remote-group REMOTE_GROUP
-                        Target group of remote github for backup.
+                        Target group of remote github for backup, Leave this as blank if you want to keep the same name as remote
+  --remote-parent-group REMOTE_PARENT_GROUP
+                        Parent group to save all local groups
   --push-url PUSH_URL   Remote push url for backup target
   --force-push          Force push to remote by default
   --ignore-branches IGNORE_BRANCHES
                         Not sync for ignore branches, ex: cherry-pick,dev,temp
   --allow-branches ALLOW_BRANCHES
-                        Only sync for allow branches, ex: master,main,qa. if
-                        not given, sync all branches.If ignore branches is
-                        given, thepriority is higher than this argument
+                        Only sync for allow branches, ex: master,main,qa. if not given, sync all branches. If ignore branches is given,
+                        thepriority is higher than this argument
   -d, --debug           Enable debug message.
   -v, --verbose         Show message in standard output.
 ```

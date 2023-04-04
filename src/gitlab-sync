@@ -38,7 +38,12 @@ def sync(args):
     # NOTE(Ray): Support multiple groups sync, you can specify different sync
     # group target, but need to keep the same numbers in remote group, or just
     # leave as blank, we will use the same name as the local group name
-    local_groups = local_group.split(",")
+    # UPDATE(2023-04-03): We will sync all local groups to remote if local group
+    # is empty
+    if local_group:
+        local_groups = local_group.split(",")
+    else:
+        local_groups = [g.full_path for g in local_gl.groups]
 
     if not remote_group:
         remote_groups = local_groups
@@ -51,6 +56,8 @@ def sync(args):
                             local_groups, remote_groups))
 
     for index, lg in enumerate(local_groups):
+        logging.debug("Working on local grooup %s..." % lg)
+
         rg = remote_groups[index]
 
         if not local_gl.is_group_exists(lg):
@@ -61,13 +68,18 @@ def sync(args):
 
         local_projects = local_gl.group_projects(lg)
 
+        # NOTE(Ray): Add parent group for syncing, all remote groups will be saved
+        # into this namespace
+        parent_group = args.remote_parent_group
+
         _sync_group_projects(local_projects,
                              remote_gl,
                              rg,
                              push_url,
                              ignore_branches,
                              allow_branches,
-                             force_push)
+                             force_push,
+                             parent_group)
 
 
 def _sync_group_projects(local_projects,
@@ -76,20 +88,22 @@ def _sync_group_projects(local_projects,
                          push_url,
                          ignore_branches,
                          allow_branches,
-                         force_push):
+                         force_push,
+                         parent_group=None):
     with tempfile.TemporaryDirectory() as tmpdirname:
         # Get all local projects in group, pull code from
         # all branches, then push to remote
         for p in local_projects:
-            project_name = p.name
+            logging.debug("Local project info: %s" % p)
+            project_path = p.path
             git_url = p.ssh_url_to_repo
             local_namespace = p.namespace["full_path"]
             remote_namespace = _get_remote_namespace(
-                local_namespace, remote_group)
+                local_namespace, remote_group, parent_group)
             remote_url = os.path.join(
-                push_url, remote_namespace, project_name)
+                push_url, remote_namespace, project_path)
             src_path = os.path.join(
-                tmpdirname, local_namespace, project_name)
+                tmpdirname, local_namespace, project_path)
 
             if not os.path.exists(src_path):
                 os.makedirs(src_path)
@@ -111,7 +125,7 @@ def _sync_group_projects(local_projects,
 
             # Make sure groups and projects are created in remote gitlab
             remote_gl.ensure_project_exists(
-                remote_namespace, project_name)
+                remote_namespace, project_path)
 
             # Push all branches and tags to remote
             logging.info("Run git push to %s..." % remote_url)
@@ -142,10 +156,15 @@ def _is_sync_branch(ignore_branches, allow_branches, branch_name):
         return True
 
 
-def _get_remote_namespace(local_namespace, remote_group):
+def _get_remote_namespace(local_namespace, remote_group, parent_group=None):
     """Replace the first group name with remote group"""
     namespaces = local_namespace.split("/")
     namespaces[0] = remote_group
+
+    # Add parent group before sycing if remote-parent-group is given
+    if parent_group:
+        namespaces.insert(0, parent_group)
+
     return "/".join(namespaces)
 
 

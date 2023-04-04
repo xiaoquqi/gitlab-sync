@@ -108,6 +108,7 @@ class GitlabWrapper(object):
         try:
             project = self.gl.projects.get(project_url)
         except Exception as e:
+            logging.warn(e)
             logging.info("Project %s CAN NOT be found." % project_url)
             project = None
 
