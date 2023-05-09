@@ -1,6 +1,8 @@
 import logging
 
 import gitlab
+import requests
+from retrying import retry
 
 
 class GitlabWrapper(object):
@@ -89,6 +91,9 @@ class GitlabWrapper(object):
 
         return parent_group_id
 
+    @retry(stop_max_attempt_number=3,
+           wait_fixed=60000,
+           retry_on_exception=(requests.exceptions.ReadTimeout))
     def ensure_project_exists(self, namespace, project_name):
         """Create project with namespace"""
         project_url = "%s/%s" % (namespace, project_name)
@@ -106,7 +111,16 @@ class GitlabWrapper(object):
                 namespace)
 
         try:
+            logging.info("Trying to find project %s" % project_url)
             project = self.gl.projects.get(project_url)
+        except requests.exceptions.ReadTimeout as err:
+            logging.error("Find project failed due to connection"
+                          " timeout by url %s" % project_url)
+            raise requests.exceptions.ReadTimeout()
+        except gitlab.exceptions.GitlabConnectionError as err:
+            logging.error("Find project failed due to connection"
+                          " error by url %s" % project_url)
+            raise gitlab.exceptions.GitlabConnectionError()
         except Exception as e:
             logging.warn(e)
             logging.info("Project %s CAN NOT be found." % project_url)
