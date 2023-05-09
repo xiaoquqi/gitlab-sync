@@ -5,6 +5,10 @@ import requests
 from retrying import retry
 
 
+def retry_if_timeout(exception):
+    return isinstance(exception, requests.exceptions.ReadTimeout)
+
+
 class GitlabWrapper(object):
 
     def __init__(self, api_url, private_token):
@@ -93,7 +97,7 @@ class GitlabWrapper(object):
 
     @retry(stop_max_attempt_number=3,
            wait_fixed=60000,
-           retry_on_exception=(requests.exceptions.ReadTimeout))
+           retry_on_exception=retry_if_timeout)
     def ensure_project_exists(self, namespace, project_name):
         """Create project with namespace"""
         project_url = "%s/%s" % (namespace, project_name)
